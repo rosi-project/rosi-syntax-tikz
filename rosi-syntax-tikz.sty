@@ -1,0 +1,231 @@
+% Package rosi-syntax-tikz.sty
+% 
+% collection of TikZ commands to draw Object Role Models used in the RoSI research group
+%
+% Author: Stephan Boehme
+% Author: Max Leuthäuser
+%
+% Usage: \usepackage{rosi-syntax-tikz} in preamble
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{rosi-syntax-tikz}[2013/12/06]
+
+\RequirePackage{tikz}
+
+\usetikzlibrary{matrix}
+\usetikzlibrary{automata}
+\usetikzlibrary{positioning}
+\usetikzlibrary{decorations}
+\usetikzlibrary{shapes}
+\usetikzlibrary{arrows}
+\usetikzlibrary{fit}
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{calc}
+
+\tikzstyle{every node}=[font=\small]
+
+\tikzstyle{solid}=               [dash pattern=]
+\tikzstyle{dotted}=              [dash pattern=on \pgflinewidth off 2pt]
+\tikzstyle{densely dotted}=      [dash pattern=on \pgflinewidth off 1pt]
+\tikzstyle{loosely dotted}=      [dash pattern=on \pgflinewidth off 4pt]
+\tikzstyle{dashed}=              [dash pattern=on 3pt off 3pt]
+\tikzstyle{densely dashed}=      [dash pattern=on 3pt off 2pt]
+\tikzstyle{loosely dashed}=      [dash pattern=on 3pt off 6pt]
+\tikzstyle{dashdotted}=          [dash pattern=on 3pt off 2pt on \the\pgflinewidth off 2pt]
+\tikzstyle{densely dashdotted}=  [dash pattern=on 3pt off 1pt on \the\pgflinewidth off 1pt]
+\tikzstyle{loosely dashdotted}=  [dash pattern=on 3pt off 4pt on \the\pgflinewidth off 4pt]
+
+% Grid stuff
+% Use like: \draw (0,0) to[grid with coordinates] (7,7);
+\def\grd@save@target#1{%
+  \def\grd@target{#1}}
+\def\grd@save@start#1{%
+  \def\grd@start{#1}}
+\tikzset{
+  grid with coordinates/.style={
+    to path={%
+      \pgfextra{%
+        \edef\grd@@target{(\tikztotarget)}%
+        \tikz@scan@one@point\grd@save@target\grd@@target\relax
+        \edef\grd@@start{(\tikztostart)}%
+        \tikz@scan@one@point\grd@save@start\grd@@start\relax
+        \draw[minor help lines] (\tikztostart) grid (\tikztotarget);
+        \draw[major help lines] (\tikztostart) grid (\tikztotarget);
+        \grd@start
+        \pgfmathsetmacro{\grd@xa}{\the\pgf@x/1cm}
+        \pgfmathsetmacro{\grd@ya}{\the\pgf@y/1cm}
+        \grd@target
+        \pgfmathsetmacro{\grd@xb}{\the\pgf@x/1cm}
+        \pgfmathsetmacro{\grd@yb}{\the\pgf@y/1cm}
+        \pgfmathsetmacro{\grd@xc}{\grd@xa + \pgfkeysvalueof{/tikz/grid with coordinates/major step}}
+        \pgfmathsetmacro{\grd@yc}{\grd@ya + \pgfkeysvalueof{/tikz/grid with coordinates/major step}}
+        \foreach \x in {\grd@xa,\grd@xc,...,\grd@xb}
+        \node[anchor=north] at (\x,\grd@ya) {\pgfmathprintnumber{\x}};
+        \foreach \y in {\grd@ya,\grd@yc,...,\grd@yb}
+        \node[anchor=east] at (\grd@xa,\y) {\pgfmathprintnumber{\y}};
+      }
+    }
+  },
+  minor help lines/.style={
+    help lines,
+    step=\pgfkeysvalueof{/tikz/grid with coordinates/minor step}
+  },
+  major help lines/.style={
+    help lines,
+    line width=\pgfkeysvalueof{/tikz/grid with coordinates/major line width},
+    step=\pgfkeysvalueof{/tikz/grid with coordinates/major step}
+  },
+  grid with coordinates/.cd,
+  minor step/.initial=.2,
+  major step/.initial=1,
+  major line width/.initial=1pt,
+}
+
+% #1 = color, #2 = from, #3 = to
+\newcommand{\inherit}[3][black]{\draw[-open triangle 60,
+                                      thick,
+                                      draw = #1] #2 -- #3;}
+
+% #1 = color, #2 = from, #3 = to
+\newcommand{\fills}[3][black]{\draw[-triangle 60,
+                                    thick,
+                                    draw = #1,
+                                    fill = #1] #2 -- #3;}
+
+% #1 = color, #2 = from, #3 = to
+\newcommand{\implicate}[3][black]{\draw[-open triangle 60,
+                                      thick, dashed,
+                                      draw = #1] #2 -- #3;}
+
+% #1 = color, #2 = from, #3 = to
+\newcommand{\equivalent}[3][black]{\draw[triangle 60-triangle 60,
+                                      thick, dashed,
+                                      draw = #1,
+                                      fill = white] #2 -- #3;}
+
+% #1 = color, #2 = from, #3 = to
+\newcommand{\prohibit}[3][black]{\draw[angle 90 reversed-angle 90 reversed,
+                                      thick, dashed,
+                                      draw = #1,
+                                      fill = white] #2 -- #3;}
+                                      
+% #1 = color, #2 = from, #3 = to
+\newcommand{\merged}[3][black]{\draw[-triangle 60,
+                                    thick, dotted,
+                                    draw = #1,
+                                    fill = #1] #2 -- #3;}
+
+% #1 = color,
+% #2 = name,
+% #3 = coordinates,
+% #4 = width,
+% #5 = classlabel
+% #6 = fields
+% #7 = methods
+\newcommand{\class}[7][black]{
+  \node[inner sep = 3pt,
+	  	fill=white,
+        shape = rectangle split,
+        rectangle split parts = 3,
+        rectangle split every empty part={},
+        rectangle split empty part height = 0.1cm,
+        draw = #1,
+        text width = #4cm]
+        (#2) at (#3) {
+          \nodepart[text centered]{one}
+          \textsf{\textbf{\textcolor{#1}{#5}}}
+          \nodepart[text centered]{two}
+          \textsf{\textcolor{#1}{#6}}
+          \nodepart[text centered]{three}
+          \textsf{\textcolor{#1}{#7}}
+        };
+}
+
+% #1 = color,
+% #2 = name,
+% #3 = coordinates,
+% #4 = width,
+% #5 = classlabel
+% #6 = fields
+% #7 = methods
+\newcommand{\role}[7][black]{
+  \node[inner sep = 3pt,
+		fill=white,
+        rounded corners = 1ex,
+        shape = rectangle split,
+        rectangle split parts = 3,
+        rectangle split every empty part={},
+        rectangle split empty part height = 0.1cm,
+        draw = #1,
+        text width = #4cm]
+        (#2) at (#3) {
+          \nodepart[text centered]{one}
+          \textsf{\textbf{\textcolor{#1}{#5}}}
+          \nodepart[text centered]{two}
+          \textsf{\textcolor{#1}{#6}}
+          \nodepart[text centered]{three}
+          \textsf{\textcolor{#1}{#7}}
+        };
+}
+
+\newcommand{\merge}[7][black]{
+  \node[shape = circle,
+        fill=white,
+        draw = #1]
+        (#2) at (#3) {
+          \nodepart[text centered]{one}
+          \textsf{\textbf{\textcolor{#1}{#5}}}
+        };
+}
+
+\newcommand{\compartment}[8][black]{
+  \node[inner sep = 3pt,
+	    fill=white,
+        rounded corners = 1ex,
+        shape = rectangle split,
+        rectangle split parts = 4,
+        rectangle split every empty part={},
+        rectangle split empty part height = 0.1cm,
+        draw = #1,
+        text width = #4cm]
+        (#2) at (#3) {
+          \nodepart[text centered]{one}
+          \textsf{\textbf{\textcolor{#1}{#5}}}
+          \nodepart[text centered]{two}
+          \textsf{\textcolor{#1}{#6}}
+          \nodepart[text centered]{three}
+          \textsf{\textcolor{#1}{#7}}
+          \nodepart[align=center]{four}
+          \begin{tikzpicture}[remember picture]
+            #8
+          \end{tikzpicture}
+        };
+}
+
+\newcommand{\view}[8][black]{
+  \node[inner sep = 3pt,
+		fill=white,
+        rounded corners = 1ex,
+        shape = rectangle split,
+        rectangle split parts = 2,
+        rectangle split every empty part={},
+        rectangle split empty part height = 0.1cm,
+        draw = #1,
+        text width = #4cm]
+        (#2) at (#3) {
+          \nodepart[text centered]{one}
+          \textsf{\textbf{\textcolor{#1}{#5}}}
+          \nodepart[align=center]{two}
+          \begin{tikzpicture}[remember picture]
+            #8
+          \end{tikzpicture}
+        };
+}
+
+\newcommand{\extendnode}[1]{
+    (#1)
+    ($(current bounding box.north east)!(#1)!(current bounding box.south east)$)
+    ($(current bounding box.north west)!(#1)!(current bounding box.south west)$)
+}
+
+\endinput
