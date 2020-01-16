@@ -1,0 +1,19 @@
+\documentclass[11pt]{article}
+
+\usepackage{rosi-syntax-tikz}
+
+\begin{document}
+	\begin{tikzpicture}[remember picture]
+		\compartment{c_bank}{-2,0}{6}{Bank}{}{}{
+			\role{r_customer}{0,-1}{3}{Customer}{}{};
+			\rolegroup{rg_acc}{0,2}{4}{0..0}{
+				\role{r_acc_ca}{0,0}{3}{CheckingsAccount}{}{};
+				\role{r_acc_sa}{0,1.5}{3}{SavingsAccount}{}{};
+			}
+		}
+		\class{cl_person}{5,-2.5}{4}{Person}{}{};
+		\class{cl_acc}{5,0.5}{4}{Account}{}{};
+		\fills{(cl_person)}{(r_customer)};
+		\fills{(cl_acc)}{(rg_acc)};
+	\end{tikzpicture}
+\end{document}

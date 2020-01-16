@@ -202,6 +202,27 @@
         };
 }
 
+\newcommand{\rolegroup}[6][black]{
+  \node[inner sep = 3pt,
+	fill=white,
+	rounded corners = 1ex,
+	shape = rectangle split,
+	style = dashed,
+	rectangle split parts = 2,
+	rectangle split every empty part={},
+	rectangle split empty part height = 0.1cm,
+	draw = #1,
+	text width = #4cm]
+	(#2) at (#3) {
+		\nodepart[text centered]{one}
+		\textsf{\textbf{\textcolor{#1}{#5}}}
+		\nodepart[align=center]{two}
+		\begin{tikzpicture}[remember picture, solid]
+		#6
+		\end{tikzpicture}
+	};
+}
+
 \newcommand{\view}[8][black]{
   \node[inner sep = 3pt,
 		fill=white,
@@ -217,7 +238,7 @@
           \textsf{\textbf{\textcolor{#1}{#5}}}
           \nodepart[align=center]{two}
           \begin{tikzpicture}[remember picture]
-            #8
+            #8	
           \end{tikzpicture}
         };
 }
